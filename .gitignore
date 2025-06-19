@@ -1,0 +1,13 @@
+# Ignore sensitive files
+.env
+.rdata
+
+__pycache__/
+
+*.pyc
+
+#ignore local database files
+
+db/reddit.db
+
+
