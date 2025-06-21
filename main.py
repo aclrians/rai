@@ -17,32 +17,49 @@ reddit = praw.Reddit(
 # Loading openai API key
 client = OpenAI(api_key=os.getenv("OPEN_AI_KEY"))
 
+# process content through openAI
+def aiRevision(content):
+    response = client.chat.completions.create(
+        model = "gpt-3.5-turbo",
+        messages = [
+                {"role":"system", "content": "You are an experienced marketing director and you have helped customers transform their dull content into amazing sales pitches. Your job is to analyze the contents given to you by the user, the content should be transformed into well-written, unlike AI, and precise advertisments that are shown to those casually scrolling through reddit. Find a good mix between a sales pitch and casual conversation/storytelling, do NOT make it seem like you are trying to sell the product, just improve the pitch given by the user's prompt. Do NOT include hashtags as readers are less likely to read something with lame hashtags on it. "},
+                {"role":"user","content": f"Improve the quality and virality of this user's product based on their description{content}"}
+        ],
+        temperature = 0.7,
+        max_tokens = 500
+    )   
+
+    revisedWork = (response.choices[0].message.content)
+    return revisedWork
+
+
+# Checking with author
+def publishing(revisedContent, sub,postTitle):
+    print(f"\nHere is the revised content : {revisedContent}")
+    subreddit = reddit.subreddit(sub)
+    post = subreddit.submit(title=postTitle,selftext=revisedContent)
+    print("Post submitted! Here is the URL: " , post.url)
+
+
+
+
 subName = input("Hello, enter the name of the subreddit you'd like to post in :\n")
 title = input("Now, name your post :\n")
-body = input("Enter your main content here:\n")
+body = input("Enter you the main idea of your post here:\n")
+
+userDecision = input("\nWould you like to revise the content using ai?").lower()
 
 
+if userDecision == "yes":
+    aiRev = True
+    while aiRev == True:
+        userPick = input("\nWhat would you like to transform, the title or the body content?\n").lower()
+        if userPick == "body":
+            newContent= aiRevision(body)
+            publishing(newContent, subName,title)
+            aiRev = False
 
+    # Sending our revised content to be published
 
-# Sending a message 
-response = client.chat.completions.create(
-    model = "gpt-3.5-turbo",
-    messages = [
-        {"role":"system", "content": "You are an experienced poster on Reddit. You know how to spot virality and trends which you use to enhance your posts. When a user sends you a prompt, its their body paragraph, therefore, your job is to transform that body and maximize its potential as a post."},
-        {"role":"user","content": f"Improve the quality and virality of {body}"}
+    
 
-    ],
-    temperature = 0.7,
-    max_tokens = 500
-)
-
-body = (response.choices[0].message.content)
-
-
-
-
-
-subreddit = reddit.subreddit(subName)
-post = subreddit.submit(title=title,selftext=body)
-
-print("Post submitted! Here is the URL: " , post.url)
