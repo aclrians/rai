@@ -18,27 +18,41 @@ reddit = praw.Reddit(
 client = OpenAI(api_key=os.getenv("OPEN_AI_KEY"))
 
 # process content through openAI
-def aiRevision(content):
+# have the model know if the title or body are waiting to be modified
+def aiRevision(content, is_title = False):
+    typeSelector = "title" if is_title else "body"
+    prompt = f"This is a {typeSelector}:\n{content}"
     response = client.chat.completions.create(
         model = "gpt-3.5-turbo",
         messages = [
-                {"role":"system", "content": "You are an experienced marketing director and you have helped customers transform their dull content into amazing sales pitches. Your job is to analyze the contents given to you by the user, the content should be transformed into well-written, unlike AI, and precise advertisments that are shown to those casually scrolling through reddit. Find a good mix between a sales pitch and casual conversation/storytelling, do NOT make it seem like you are trying to sell the product, just improve the pitch given by the user's prompt. Do NOT include hashtags as readers are less likely to read something with lame hashtags on it. "},
-                {"role":"user","content": f"Improve the quality and virality of this user's product based on their description{content}"}
+                {"role":"system", "content": "You are an expert marketing editor. The user will provide EITHER a title or a body. Improve ONLY that section. Do not return anything else. For titles, keep it under 100 characters, no hashtags or quotes."},
+                {"role":"user","content": prompt}
         ],
         temperature = 0.7,
         max_tokens = 500
     )   
-
+    # Returning the ai response
     revisedWork = (response.choices[0].message.content)
     return revisedWork
 
-
-# Checking with author
-def publishing(revisedContent, sub,postTitle):
-    print(f"\nHere is the revised content : {revisedContent}")
+def publishing(sub,userBody,revisedBody,userTitle,revisedTitle):
     subreddit = reddit.subreddit(sub)
-    post = subreddit.submit(title=postTitle,selftext=revisedContent)
-    print("Post submitted! Here is the URL: " , post.url)
+    # If title changes
+    if userBody == revisedBody and userTitle != revisedTitle:
+        post = subreddit.submit(title = revisedTitle  , selftext = userBody)
+        print("Post submitted! Here is the URL: " , post.url)
+    # If body changes
+    elif userBody != revisedBody and userTitle == revisedTitle:
+        post = subreddit.submit(title = userTitle , selftext = revisedBody)
+        print("Post submitted! Here is the URL: " , post.url)
+    # If both title and body have been changed
+    elif userBody != revisedBody and userTitle != revisedTitle:
+        post = subreddit.submit(title = revisedTitle , selftext = revisedBody)
+        print("Post submitted! Here is the URL: " , post.url)
+    # If none changed
+    else:
+        post = subreddit.submit(title = userTitle , selftext = userBody)
+        print("Post submitted! Here is the URL: " , post.url)
 
 
 
@@ -47,19 +61,30 @@ subName = input("Hello, enter the name of the subreddit you'd like to post in :\
 title = input("Now, name your post :\n")
 body = input("Enter you the main idea of your post here:\n")
 
+aiBody = body
+aiTitle = title
+
 userDecision = input("\nWould you like to revise the content using ai?").lower()
 
-
+'''
+So I wrote to senf multiple variables because we needed a system to see which content was being changed, will explain better in future
+'''
 if userDecision == "yes":
     aiRev = True
     while aiRev == True:
         userPick = input("\nWhat would you like to transform, the title or the body content?\n").lower()
         if userPick == "body":
-            newContent= aiRevision(body)
-            publishing(newContent, subName,title)
+            aiBody= aiRevision(body, is_title = False)
+            print(f"\nHere is the revised content : {aiBody}")
+            # Publishing the content
+            publishing(subName,body,aiBody,title,aiTitle)
+            aiRev = False
+        if userPick == "title":
+            aiTitle = aiRevision(title, is_title = True)
+            print(f"\nHere is the revised content : {aiTitle}")
+            publishing(subName,body,aiBody,title,aiTitle)
             aiRev = False
 
-    # Sending our revised content to be published
 
     
 
