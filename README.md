@@ -7,6 +7,7 @@ A command-line tool that helps users post to Reddit with enhanced titles, text, 
 - Post from terminal to Reddit using the Reddit API
 - Secure API managment
 - Generating content from AI
+- Store posts internally
 
 # Features to be implemented in the near future
 
@@ -16,7 +17,6 @@ A command-line tool that helps users post to Reddit with enhanced titles, text, 
 - View data from recent viral/popular posts to base content from
 - Post comments 
 - View account statistics
-- Store posts internally
 - Train content strategies based on past post performance
 - Draft Mode
 - Cross posting to multiple reddits or platforms
