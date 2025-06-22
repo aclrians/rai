@@ -6,6 +6,7 @@ A command-line tool that helps users post to Reddit with enhanced titles, text, 
 
 - Post from terminal to Reddit using the Reddit API
 - Secure API managment
+- Generating content from AI
 
 # Features to be implemented in the near future
 
