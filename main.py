@@ -2,6 +2,22 @@ import praw
 import os
 from dotenv import load_dotenv
 from openai import OpenAI 
+import sqlite3
+from datetime import datetime
+
+def insert_into_db(title, post):
+
+    todayDate = datetime.today().strftime('%Y-%m-%d')
+    con = sqlite3.connect("database.db")
+    cur = con.cursor()
+    cur.execute("CREATE TABLE IF NOT EXISTS Post(date TEXT, title TEXT , body TEXT)")
+    # Inserting
+    cur.execute("INSERT INTO Post (date, title, body) VALUES (?,?,?)" , (todayDate,title,post))
+    con.commit()
+    # Closing
+    con.close()
+    print("Logged into database\n")
+
 
 load_dotenv()
 # Loading reddit API key
@@ -40,19 +56,23 @@ def publishing(sub,userBody,revisedBody,userTitle,revisedTitle):
     # If title changes
     if userBody == revisedBody and userTitle != revisedTitle:
         post = subreddit.submit(title = revisedTitle  , selftext = userBody)
-        print("Post submitted! Here is the URL: " , post.url)
+        print("Post submitted! Here is the URL:\n " , post.url)
+        insert_into_db(revisedTitle,userBody)
     # If body changes
     elif userBody != revisedBody and userTitle == revisedTitle:
         post = subreddit.submit(title = userTitle , selftext = revisedBody)
         print("Post submitted! Here is the URL: " , post.url)
+        insert_into_db(userTitle,revisedBody)
     # If both title and body have been changed
     elif userBody != revisedBody and userTitle != revisedTitle:
         post = subreddit.submit(title = revisedTitle , selftext = revisedBody)
         print("Post submitted! Here is the URL: " , post.url)
+        insert_into_db(revisedTitle,revisedBody)
     # If none changed
     else:
         post = subreddit.submit(title = userTitle , selftext = userBody)
         print("Post submitted! Here is the URL: " , post.url)
+        insert_into_db(userTitle,userBody)
 
 
 
@@ -64,7 +84,7 @@ body = input("Enter you the main idea of your post here:\n")
 aiBody = body
 aiTitle = title
 
-userDecision = input("\nWould you like to revise the content using ai?").lower()
+userDecision = input("\nWould you like to revise the content using ai?\n").lower()
 
 '''
 So I wrote to senf multiple variables because we needed a system to see which content was being changed, will explain better in future
