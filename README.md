@@ -2,7 +2,7 @@
 
 A command-line tool that helps users post to Reddit with enhanced titles, text, and content using AI
 
-# Features as of June 19, 2025
+# Features as of June 21, 2025
 
 - Post from terminal to Reddit using the Reddit API
 - Secure API managment
